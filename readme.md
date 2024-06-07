@@ -16,7 +16,7 @@
 1. git clone 本项目
 
 ```bash
-git clone https://github.com/z-mio/ehentai_bot.git
+git clone https://github.com/lyjkirisnooqa/ehentai_bot.git
 ```
 
 2. 修改配置文件
