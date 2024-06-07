@@ -122,13 +122,22 @@ async def destroy_regularly(url: str):
 # 新增的事件处理器，用于处理转发消息中的画廊链接
 @Client.on_message(filters.regex(r"https://(?:e-|ex)hentai.org/g/(\d+)/([a-f0-9]+)") & filters.forwarded)
 async def handle_forwarded_gallery_link(_, msg: Message):
-    # 检测到转发的消息中包含画廊链接
-    gallery_url = msg.text
-    logger.info(f"处理转发的画廊链接: {gallery_url}")
+    # 检测到转发的消息中可能包含一个或多个画廊链接
+    logger.info("处理转发的消息中的画廊链接...")
     
-    # 调用已有的解析函数
-    try:
-        await ep(_, msg)
-    except Exception as e:
-        await msg.reply("处理转发的画廊链接时发生错误")
-        logger.error(f"Error processing forwarded gallery link: {e}")
+    # 查找所有匹配的画廊链接
+    gallery_links = re.findall(r'https://(?:e-|ex)hentai.org/g/(\d+)/([a-f0-9]+)', msg.text)
+    
+    if gallery_links:
+        for gid, token in gallery_links:
+            full_url = f"https://e-hentai.org/g/{gid}/{token}"
+            logger.info(f"处理转发的画廊链接: {full_url}")
+            
+            # 调用已有的解析函数处理每个链接
+            try:
+                await ep(_, msg.reply_to_message.text.replace(full_url, ''))  # 使用回复消息的文本，去除当前处理的链接
+            except Exception as e:
+                await msg.reply(f"处理画廊链接 {full_url} 时发生错误: {str(e)}")
+                logger.error(f"Error processing gallery link: {full_url}, Error: {e}")
+    else:
+        await msg.reply("转发的消息中没有找到有效的画廊链接。")
