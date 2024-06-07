@@ -118,3 +118,17 @@ async def count(_, msg: Message):
 async def destroy_regularly(url: str):
     """定时销毁下载"""
     scheduler.add_job(cancel_download, 'interval', args=[url], seconds=e_cfg.destroy_regularly)
+
+# 新增的事件处理器，用于处理转发消息中的画廊链接
+@Client.on_message(filters.regex(r"https://(?:e-|ex)hentai.org/g/(\d+)/([a-f0-9]+)") & filters.forwarded)
+async def handle_forwarded_gallery_link(_, msg: Message):
+    # 检测到转发的消息中包含画廊链接
+    gallery_url = msg.text
+    logger.info(f"处理转发的画廊链接: {gallery_url}")
+    
+    # 调用已有的解析函数
+    try:
+        await ep(_, msg)
+    except Exception as e:
+        await msg.reply("处理转发的画廊链接时发生错误")
+        logger.error(f"Error processing forwarded gallery link: {e}")
